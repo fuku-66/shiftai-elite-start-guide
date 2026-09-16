@@ -13,4 +13,4 @@ ELITE会員が現在地を選び、開始準備、最初の実践、FAQ確認ま
 
 ## 更新方法
 
-正本は `../shiftai-elite-utage-demo/` です。この公開フォルダを直接編集せず、正本を変更してから `output/events/elite-followup-seminar-20260916/export-guide.mjs` で `index.html` を再生成します。
+公開用の `index.html` は、管理中のReact版から `output/events/elite-followup-seminar-20260916/export-guide.mjs` で再生成します。
