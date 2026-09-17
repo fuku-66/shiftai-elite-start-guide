@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIに頼んだら、私の仕事がなくなった｜ELITEレビュー業務</title>
+  <style>
+    :root {
+      --ink: #333333;
+      --muted: #707070;
+      --line: #d9d9df;
+      --paper: #ffffff;
+      --soft: #f6e9f0;
+      --soft-teal: #e6f4f2;
+      --magenta: #a51e6d;
+      --magenta-bright: #d9146f;
+      --teal: #039578;
+      --red: #ff5757;
+      --purple: #8c52ff;
+      --shadow: 0 18px 70px rgba(28, 24, 35, .18);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body {
+      color: var(--ink);
+      background: #17141c;
+      font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+    }
+
+    .viewport {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(165,30,109,.24), transparent 31%),
+        radial-gradient(circle at 90% 92%, rgba(3,149,120,.18), transparent 30%),
+        #17141c;
+    }
+
+    .deck {
+      position: absolute;
+      left: 50%;
+      top: calc((100% - 94px) / 2);
+      width: 1920px;
+      height: 1080px;
+      transform-origin: center center;
+      box-shadow: var(--shadow);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: #fff url("assets/background.png") center / cover no-repeat;
+      opacity: 0;
+      transform: translateX(70px) scale(.985);
+      pointer-events: none;
+      transition: opacity .34s ease, transform .34s ease;
+    }
+    .slide.active { opacity: 1; transform: translateX(0) scale(1); pointer-events: auto; }
+    .slide.was-active { transform: translateX(-70px) scale(.985); }
+
+    .top-band {
+      position: absolute;
+      inset: 0 0 auto;
+      height: 112px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 72px;
+      color: #fff;
+      background: linear-gradient(90deg, var(--red), var(--purple));
+      z-index: 5;
+    }
+    .top-band img {
+      height: 54px;
+      width: auto;
+      padding: 7px 16px;
+      border-radius: 8px;
+      background: #fff;
+    }
+    .top-band .meta { font-size: 23px; font-weight: 700; letter-spacing: .08em; }
+
+    .page {
+      position: absolute;
+      right: 68px;
+      bottom: 36px;
+      color: #8d8990;
+      font: 600 22px/1 "SFMono-Regular", Menlo, Consolas, monospace;
+      letter-spacing: .08em;
+    }
+
+    .eyebrow {
+      color: var(--magenta);
+      font-size: 25px;
+      line-height: 1;
+      letter-spacing: .16em;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    h1, h2, h3, p { margin: 0; }
+    .accent {
+      background: linear-gradient(90deg, var(--red), var(--purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    /* 01 cover */
+    .cover .content {
+      position: absolute;
+      z-index: 2;
+      inset: 112px 0 0;
+      padding: 96px 90px 64px;
+    }
+    .cover h1 {
+      width: 1170px;
+      margin-top: 34px;
+      font-size: 116px;
+      line-height: 1.08;
+      letter-spacing: -.045em;
+      font-weight: 900;
+    }
+    .cover .subtitle {
+      margin-top: 30px;
+      font-size: 38px;
+      line-height: 1.45;
+      font-weight: 700;
+      color: #57535b;
+    }
+    .cover .illustration {
+      position: absolute;
+      right: 40px;
+      bottom: 28px;
+      width: 850px;
+      height: 460px;
+      object-fit: contain;
+      object-position: right bottom;
+      mix-blend-mode: multiply;
+    }
+    .cover .title-chip {
+      display: inline-flex;
+      margin-top: 42px;
+      padding: 15px 26px;
+      border-radius: 999px;
+      color: var(--magenta);
+      background: var(--soft);
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    /* shared content */
+    .body {
+      position: absolute;
+      inset: 112px 0 0;
+      padding: 62px 74px 64px;
+    }
+    .slide-title {
+      margin-top: 16px;
+      font-size: 66px;
+      line-height: 1.2;
+      letter-spacing: -.025em;
+      font-weight: 900;
+    }
+    .lead {
+      margin-top: 18px;
+      font-size: 30px;
+      line-height: 1.45;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* before */
+    .before-layout {
+      display: grid;
+      grid-template-columns: 1070px 1fr;
+      gap: 42px;
+      margin-top: 40px;
+      align-items: stretch;
+    }
+    .manual-flow {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .step-card {
+      position: relative;
+      min-height: 214px;
+      padding: 26px 24px 22px;
+      border: 2px solid #dfdde2;
+      border-radius: 22px;
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 8px 24px rgba(41,35,45,.055);
+    }
+    .step-card .num {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 18px;
+      border-radius: 50%;
+      color: #fff;
+      background: #8b858e;
+      font-size: 24px;
+      font-weight: 900;
+    }
+    .step-card strong { display: block; font-size: 30px; line-height: 1.25; }
+    .step-card span { display: block; margin-top: 10px; color: var(--muted); font-size: 22px; line-height: 1.4; font-weight: 600; }
+    .before-visual {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      background: linear-gradient(160deg, #faf7f9, #f0eef1);
+      border: 2px solid #e5e1e6;
+    }
+    .before-visual img {
+      position: absolute;
+      inset: 20px 14px 100px;
+      width: calc(100% - 28px);
+      height: calc(100% - 120px);
+      object-fit: contain;
+      mix-blend-mode: multiply;
+    }
+    .before-visual .pain {
+      position: absolute;
+      left: 30px;
+      right: 30px;
+      bottom: 26px;
+      padding: 18px 24px;
+      border-radius: 16px;
+      color: #fff;
+      background: #59535c;
+      font-size: 26px;
+      line-height: 1.35;
+      text-align: center;
+      font-weight: 900;
+    }
+
+    /* scheduled */
+    .schedule-layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 48px;
+      margin-top: 42px;
+      align-items: center;
+    }
+    .timer-card {
+      height: 530px;
+      padding: 34px;
+      border-radius: 32px;
+      background: var(--soft-teal);
+      border: 3px solid rgba(3,149,120,.24);
+      text-align: center;
+    }
+    .clock {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      margin: 14px auto 18px;
+      border: 16px solid var(--teal);
+      border-radius: 50%;
+      background: #fff;
+    }
+    .clock::before {
+      content: "";
+      position: absolute;
+      width: 10px;
+      height: 76px;
+      left: 50%;
+      top: 33px;
+      border-radius: 8px;
+      background: var(--ink);
+      transform: translateX(-50%);
+      transform-origin: center bottom;
+    }
+    .clock::after {
+      content: "";
+      position: absolute;
+      width: 72px;
+      height: 10px;
+      left: 50%;
+      top: 50%;
+      border-radius: 8px;
+      background: var(--ink);
+      transform: translateY(-50%);
+      transform-origin: left center;
+    }
+    .timer-card .big { color: var(--teal); font-size: 54px; font-weight: 900; }
+    .timer-card p { margin-top: 10px; font-size: 26px; line-height: 1.45; font-weight: 700; }
+    .auto-flow {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      padding: 30px 0 210px;
+    }
+    .auto-flow::before {
+      content: "";
+      position: absolute;
+      left: 50px;
+      right: 50px;
+      top: 114px;
+      height: 8px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, var(--teal), var(--magenta));
+      z-index: 0;
+    }
+    .auto-card {
+      position: relative;
+      z-index: 1;
+      min-height: 170px;
+      padding: 25px 18px;
+      border-radius: 20px;
+      background: #fff;
+      border: 3px solid var(--teal);
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(3,149,120,.10);
+    }
+    .auto-card:nth-child(3), .auto-card:nth-child(4) { border-color: var(--magenta); }
+    .auto-card .icon { font-size: 48px; line-height: 1; }
+    .auto-card strong { display: block; margin-top: 16px; font-size: 27px; line-height: 1.25; }
+    .schedule-illust {
+      position: absolute;
+      right: 10px;
+      bottom: -8px;
+      width: 850px;
+      height: 260px;
+      object-fit: contain;
+      object-position: right bottom;
+      mix-blend-mode: multiply;
+      opacity: .96;
+    }
+
+    /* after */
+    .after-layout {
+      display: grid;
+      grid-template-columns: 830px 1fr;
+      gap: 46px;
+      margin-top: 34px;
+      align-items: stretch;
+    }
+    .impact-panel {
+      position: relative;
+      min-height: 590px;
+      padding: 42px 42px 30px;
+      border-radius: 30px;
+      color: #fff;
+      background: linear-gradient(145deg, #a51e6d 0%, #8c52ff 100%);
+      overflow: hidden;
+    }
+    .impact-panel .from { font-size: 34px; font-weight: 800; opacity: .82; }
+    .impact-panel .big-change {
+      display: grid;
+      grid-template-columns: 1fr 92px 1fr;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      font-weight: 900;
+      letter-spacing: -.04em;
+    }
+    .impact-panel .metric { display: flex; align-items: baseline; justify-content: center; gap: 10px; white-space: nowrap; }
+    .impact-panel .six { font-size: 176px; opacity: .72; }
+    .impact-panel .arrow { font-size: 94px; }
+    .impact-panel .one { font-size: 220px; line-height: .9; }
+    .impact-panel .units { font-size: 43px; letter-spacing: 0; white-space: nowrap; }
+    .impact-panel .impact-copy {
+      margin-top: 40px;
+      font-size: 41px;
+      line-height: 1.4;
+      font-weight: 900;
+    }
+    .decision {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: 22px;
+    }
+    .decision-card {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      align-items: center;
+      gap: 26px;
+      padding: 30px 34px;
+      border-radius: 26px;
+      background: #fff;
+      border: 2px solid #e2dfe4;
+      box-shadow: 0 8px 28px rgba(37,32,40,.07);
+    }
+    .decision-card.ok { background: var(--soft-teal); border-color: rgba(3,149,120,.28); }
+    .decision-card.issue { background: var(--soft); border-color: rgba(165,30,109,.24); }
+    .decision-icon {
+      display: grid;
+      place-items: center;
+      width: 118px;
+      height: 118px;
+      border-radius: 28px;
+      color: #fff;
+      background: var(--teal);
+      font-size: 66px;
+      font-weight: 900;
+    }
+    .issue .decision-icon { background: var(--magenta); font-size: 52px; }
+    .decision-card .label { color: var(--muted); font-size: 24px; font-weight: 800; }
+    .decision-card strong { display: block; margin-top: 8px; font-size: 42px; line-height: 1.25; }
+    .after-note {
+      position: absolute;
+      left: 952px;
+      right: 74px;
+      bottom: 54px;
+      font-size: 25px;
+      line-height: 1.45;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    /* closing */
+    .closing {
+      background: #fff url("assets/background.png") center / cover no-repeat;
+    }
+    .closing .content {
+      position: absolute;
+      inset: 112px 0 0;
+      padding: 82px 100px;
+      text-align: center;
+    }
+    .closing h2 {
+      margin: 24px auto 0;
+      max-width: 1500px;
+      font-size: 94px;
+      line-height: 1.2;
+      letter-spacing: -.035em;
+      font-weight: 900;
+    }
+    .closing .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 34px;
+      margin: 72px auto 0;
+      max-width: 1350px;
+    }
+    .closing-card {
+      min-height: 260px;
+      padding: 42px 38px;
+      border-radius: 28px;
+      background: #fff;
+      border: 3px solid #dedbe0;
+    }
+    .closing-card:first-child { border-color: var(--teal); background: var(--soft-teal); }
+    .closing-card:last-child { border-color: var(--magenta); background: var(--soft); }
+    .closing-card .small { color: var(--muted); font-size: 25px; font-weight: 800; }
+    .closing-card strong { display: block; margin-top: 18px; font-size: 49px; line-height: 1.3; }
+    .closing .bottom-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 24px;
+      background: linear-gradient(90deg, var(--red), var(--purple));
+    }
+
+    /* controls */
+    .controls {
+      position: fixed;
+      z-index: 30;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      background: rgba(19,16,23,.78);
+      backdrop-filter: blur(12px);
+      color: #fff;
+    }
+    .controls button {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 50%;
+      color: #fff;
+      background: rgba(255,255,255,.12);
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .controls button:hover { background: rgba(255,255,255,.22); }
+    .dots { display: flex; gap: 9px; }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border: 0;
+      padding: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,.3);
+      cursor: pointer;
+    }
+    .dot.active { width: 28px; border-radius: 999px; background: #fff; }
+    .counter { min-width: 64px; font: 700 15px/1 Menlo, Consolas, monospace; text-align: center; }
+
+    .speaker-note { display: none; }
+
+    html.export-mode .deck { left: 0; top: 0; transform: scale(1) !important; }
+
+    @media print {
+      html, body { overflow: visible; width: auto; height: auto; background: #fff; }
+      .viewport { position: static; display: block; background: #fff; }
+      .deck { width: 1920px; height: auto; transform: none !important; box-shadow: none; overflow: visible; }
+      .slide { position: relative; opacity: 1 !important; transform: none !important; page-break-after: always; }
+      .controls { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="viewport" aria-label="ELITEスライドレビュー業務のカルーセル">
+    <div class="deck" id="deck">
+      <section class="slide cover active" aria-label="表紙">
+        <div class="top-band">
+          <img src="assets/logo.webp" alt="SHIFT AI">
+          <span class="meta">INSTRUCTOR STUDY SESSION · 2026.09</span>
+        </div>
+        <div class="content">
+          <div class="eyebrow">Workflow redesign</div>
+          <h1>AIに頼んだら、<br><span class="accent">私の仕事がなくなった</span></h1>
+          <p class="subtitle">講師スライドレビューが<br>「結果を見て、チェック」に変わるまで</p>
+          <div class="title-chip">3〜5分でわかる業務改善の実例</div>
+          <img class="illustration" src="assets/roles-lineup.png" alt="講師とAI活用メンバーのシンプルな線画">
+        </div>
+        <div class="page">01 / 05</div>
+        <aside class="speaker-note">レビューの内容より、レビュー業務そのものがどう変わったかを紹介します。</aside>
+      </section>
+
+      <section class="slide" aria-label="Before">
+        <div class="top-band"><span>Before</span><span class="meta">人が工程をつないでいた</span></div>
+        <div class="body">
+          <div class="eyebrow">Before · 都度対応</div>
+          <h2 class="slide-title">AIは使っていた。でも、<span class="accent">私が6工程をつないでいた。</span></h2>
+          <div class="before-layout">
+            <div class="manual-flow">
+              <div class="step-card"><div class="num">1</div><strong>依頼を確認</strong><span>チェック依頼を受け取る</span></div>
+              <div class="step-card"><div class="num">2</div><strong>Canvaを開く</strong><span>対象スライドを探す</span></div>
+              <div class="step-card"><div class="num">3</div><strong>PDF保存</strong><span>レビュー用に取得する</span></div>
+              <div class="step-card"><div class="num">4</div><strong>AIレビュー</strong><span>専用スキルを実行する</span></div>
+              <div class="step-card"><div class="num">5</div><strong>HTML確認</strong><span>評価と指摘を読む</span></div>
+              <div class="step-card"><div class="num">6</div><strong>結果を連絡</strong><span>問題なしでも返信する</span></div>
+            </div>
+            <div class="before-visual">
+              <img src="assets/scene-matching.png" alt="複数の資料と関係者を確認する担当者の線画">
+              <div class="pain">依頼のたびに、同じ準備と連絡を繰り返す</div>
+            </div>
+          </div>
+        </div>
+        <div class="page">02 / 05</div>
+        <aside class="speaker-note">AIレビュー自体は使っていました。ただし、前後の工程を私が毎回手でつないでいました。</aside>
+      </section>
+
+      <section class="slide" aria-label="定時実行のワークフロー">
+        <div class="top-band"><span>Workflow</span><span class="meta">定時実行へ</span></div>
+        <div class="body">
+          <div class="eyebrow">Change · 自動で準備</div>
+          <h2 class="slide-title">定時実行で、<span class="accent">レビュー工程が先に動く。</span></h2>
+          <p class="lead">人が依頼を見つけて着手する流れから、時間になればレビュー結果が用意される流れへ。</p>
+          <div class="schedule-layout">
+            <div class="timer-card">
+              <div class="clock" aria-hidden="true"></div>
+              <div class="big">定時実行</div>
+              <p>私を待たずに<br>定型工程が進む</p>
+            </div>
+            <div class="auto-flow">
+              <div class="auto-card"><div class="icon">⌕</div><strong>対象を確認</strong></div>
+              <div class="auto-card"><div class="icon">PDF</div><strong>Canvaから取得</strong></div>
+              <div class="auto-card"><div class="icon">AI</div><strong>スキルでレビュー</strong></div>
+              <div class="auto-card"><div class="icon">HTML</div><strong>評価を出力</strong></div>
+              <img class="schedule-illust" src="assets/scene-action.png" alt="情報が一か所へ集まり共有される線画">
+            </div>
+          </div>
+        </div>
+        <div class="page">03 / 05</div>
+        <aside class="speaker-note">ポイントは単発のAI利用ではなく、対象確認からHTML出力までを定時実行でつないだことです。</aside>
+      </section>
+
+      <section class="slide" aria-label="After">
+        <div class="top-band"><span>After</span><span class="meta">人は1つの判断だけ</span></div>
+        <div class="body">
+          <div class="eyebrow">After · 例外だけ対応</div>
+          <h2 class="slide-title">私の仕事は、<span class="accent">結果を見て判断するだけ。</span></h2>
+          <div class="after-layout">
+            <div class="impact-panel">
+              <div class="from">人が担当する工程</div>
+              <div class="big-change">
+                <span class="metric"><span class="six">6</span><span class="units">工程</span></span>
+                <span class="arrow">→</span>
+                <span class="metric"><span class="one">1</span><span class="units">判断</span></span>
+              </div>
+              <p class="impact-copy">「問題ありません」と<br>返信する仕事も、なくなった。</p>
+            </div>
+            <div class="decision">
+              <div class="decision-card ok">
+                <div class="decision-icon">✓</div>
+                <div><div class="label">問題なし</div><strong>チェックボックスを入れる</strong></div>
+              </div>
+              <div class="decision-card issue">
+                <div class="decision-icon">S</div>
+                <div><div class="label">問題あり</div><strong>Slackで直接伝える</strong></div>
+              </div>
+            </div>
+          </div>
+          <p class="after-note">※ 最終判断と、問題がある場合のコミュニケーションは人が担当</p>
+        </div>
+        <div class="page">04 / 05</div>
+        <aside class="speaker-note">正常ならチェック、問題があるときだけSlack。人の役割は最終判断と例外対応に絞られました。</aside>
+      </section>
+
+      <section class="slide closing" aria-label="まとめ">
+        <div class="top-band">
+          <img src="assets/logo.webp" alt="SHIFT AI">
+          <span class="meta">TAKEAWAY</span>
+        </div>
+        <div class="content">
+          <div class="eyebrow">What changed</div>
+          <h2>なくなったのは、<br><span class="accent">判断ではなく定型作業。</span></h2>
+          <div class="split">
+            <div class="closing-card"><div class="small">正常系</div><strong>仕組みに任せる</strong></div>
+            <div class="closing-card"><div class="small">例外</div><strong>人が判断して伝える</strong></div>
+          </div>
+        </div>
+        <div class="bottom-line"></div>
+        <div class="page">05 / 05</div>
+        <aside class="speaker-note">AIに仕事を奪われたのではなく、毎回人がやる必要のない工程を、仕事から外せたという話です。</aside>
+      </section>
+    </div>
+  </main>
+
+  <nav class="controls" aria-label="スライド操作">
+    <button id="prev" type="button" aria-label="前のスライド">‹</button>
+    <div class="dots" id="dots" aria-label="スライド一覧"></div>
+    <span class="counter" id="counter">1 / 5</span>
+    <button id="next" type="button" aria-label="次のスライド">›</button>
+  </nav>
+
+  <script>
+    (() => {
+      const deck = document.getElementById('deck');
+      const slides = [...document.querySelectorAll('.slide')];
+      const dots = document.getElementById('dots');
+      const counter = document.getElementById('counter');
+      let index = 0;
+      let startX = null;
+
+      function fit() {
+        const availableWidth = Math.max(320, window.innerWidth - 24);
+        const availableHeight = Math.max(180, window.innerHeight - 106);
+        const scale = Math.min(availableWidth / 1920, availableHeight / 1080);
+        deck.style.top = `${(window.innerHeight - 94) / 2}px`;
+        deck.style.transform = `translate(-50%, -50%) scale(${scale})`;
+      }
+
+      slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'dot' + (i === 0 ? ' active' : '');
+        dot.type = 'button';
+        dot.setAttribute('aria-label', `${i + 1}枚目へ`);
+        dot.addEventListener('click', () => show(i));
+        dots.appendChild(dot);
+      });
+
+      function show(nextIndex) {
+        const bounded = Math.max(0, Math.min(slides.length - 1, nextIndex));
+        slides.forEach((slide, i) => {
+          slide.classList.toggle('active', i === bounded);
+          slide.classList.toggle('was-active', i < bounded);
+        });
+        [...dots.children].forEach((dot, i) => dot.classList.toggle('active', i === bounded));
+        index = bounded;
+        counter.textContent = `${index + 1} / ${slides.length}`;
+        history.replaceState(null, '', `#${index + 1}`);
+      }
+      window.__showSlide = show;
+
+      document.getElementById('prev').addEventListener('click', () => show(index - 1));
+      document.getElementById('next').addEventListener('click', () => show(index + 1));
+      window.addEventListener('keydown', (event) => {
+        if (['ArrowRight', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); show(index + 1); }
+        if (['ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); show(index - 1); }
+        if (event.key === 'Home') show(0);
+        if (event.key === 'End') show(slides.length - 1);
+        if (event.key.toLowerCase() === 'f') document.documentElement.requestFullscreen?.();
+      });
+      window.addEventListener('touchstart', event => { startX = event.touches[0].clientX; }, { passive: true });
+      window.addEventListener('touchend', event => {
+        if (startX === null) return;
+        const delta = event.changedTouches[0].clientX - startX;
+        if (Math.abs(delta) > 60) show(index + (delta < 0 ? 1 : -1));
+        startX = null;
+      }, { passive: true });
+      window.addEventListener('resize', fit);
+
+      const hashIndex = Number(location.hash.replace('#', '')) - 1;
+      fit();
+      if (Number.isInteger(hashIndex) && hashIndex >= 0) show(hashIndex);
+    })();
+  </script>
+</body>
+</html>
