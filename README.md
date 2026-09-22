@@ -13,6 +13,7 @@ ELITE会員が会員サイトで迷いやすい開始準備と、よくある質
 ## 更新方法
 
 公開用の `index.html` は、管理中のReact版から `output/events/elite-followup-seminar-20260916/export-guide.mjs` で再生成します。
+制作フローの挿絵 `agent-creation-flow-illustration.png` も同じスクリプトで公開用フォルダへコピーします。
 
 ## FAQの構成（2026-09-17）
 
